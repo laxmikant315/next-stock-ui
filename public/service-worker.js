@@ -1,16 +1,65 @@
-console.log('Loaded service worker!11');
+/**
+ * Welcome to your Workbox-powered service worker!
+ *
+ * You'll need to register this file in your web app and you should
+ * disable HTTP caching for this file too.
+ * See https://goo.gl/nhQhGp
+ *
+ * The rest of the code is auto-generated. Please don't update this file
+ * directly; instead, make changes to your Workbox build configuration
+ * and re-run your build process.
+ * See https://goo.gl/2aRDsh
+ */
 
-self.addEventListener('push', ev => {
-  const data = ev.data.json();
-  console.log('Got push', data);
-  self.registration.showNotification(data.title, {
-    body: data.body,
-    icon: 'http://mongoosejs.com/docs/images/mongoose5_62x30_transparent.png',
-    sound:"/notify.mp3",
-    vibrate: [200, 100, 200, 100, 200, 100, 200],
-    requireInteraction:true,
-    tag:"my-tag",
-    silent:false
-  });
+importScripts(
+  "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js"
+);
 
-});
+importScripts("/precache-manifest.aab078d9dcce98cbf78aeca3576e5734.js");
+
+function receivePushNotification(event) {
+  console.log("[Service Worker] Push Received.");
+  const { image, tag, url, title, body } = event.data.json();
+  const options = {
+    data: url,
+    body: body,
+    icon: image,
+    vibrate: [200, 100, 200],
+    tag: tag,
+    image: image,
+    badge: "/favicon.ico",
+    actions: [
+      {
+        action: "Detail",
+        title: "View",
+        icon: "https://via.placeholder.com/128/ff0000",
+      },
+    ],
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+}
+
+self.addEventListener("push", receivePushNotification);
+
+// self.addEventListener("message", (event) => {
+//   if (event.data && event.data.type === "SKIP_WAITING") {
+//     self.skipWaiting();
+//   }
+// });
+
+workbox.core.clientsClaim();
+
+/**
+ * The workboxSW.precacheAndRoute() method efficiently caches and responds to
+ * requests for URLs in the manifest.
+ * See https://goo.gl/S9QRab
+ */
+self.__precacheManifest = [].concat(self.__precacheManifest || []);
+workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
+
+workbox.routing.registerNavigationRoute(
+  workbox.precaching.getCacheKeyForURL("/index.html"),
+  {
+    blacklist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+  }
+);

@@ -2,5 +2,5 @@ import styled from "styled-components";
 
 export const AppStyles = styled.div`
   background: #ececec;
-  padding: 20px;
+  padding: 0px 10px;
 `;
