@@ -12,54 +12,57 @@
  */
 
 importScripts(
-  "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js"
-);
-
-importScripts("/precache-manifest.aab078d9dcce98cbf78aeca3576e5734.js");
-
-function receivePushNotification(event) {
-  console.log("[Service Worker] Push Received.");
-  const { image, tag, url, title, body } = event.data.json();
-  const options = {
-    data: url,
-    body: body,
-    icon: image,
-    vibrate: [200, 100, 200],
-    tag: tag,
-    image: image,
-    badge: "/favicon.ico",
-    actions: [
-      {
-        action: "Detail",
-        title: "View",
-        icon: "https://via.placeholder.com/128/ff0000",
-      },
-    ],
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
-}
-
-self.addEventListener("push", receivePushNotification);
-
-// self.addEventListener("message", (event) => {
-//   if (event.data && event.data.type === "SKIP_WAITING") {
-//     self.skipWaiting();
-//   }
-// });
-
-workbox.core.clientsClaim();
-
-/**
- * The workboxSW.precacheAndRoute() method efficiently caches and responds to
- * requests for URLs in the manifest.
- * See https://goo.gl/S9QRab
- */
-self.__precacheManifest = [].concat(self.__precacheManifest || []);
-workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
-
-workbox.routing.registerNavigationRoute(
-  workbox.precaching.getCacheKeyForURL("/index.html"),
-  {
-    blacklist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+    "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js"
+  );
+  
+  importScripts("/precache-manifest.aab078d9dcce98cbf78aeca3576e5734.js");
+  
+  console.log('My custom service worker')
+  
+  function receivePushNotification(event) {
+    console.log("[Service Worker] Push Received.");
+    const { image, tag, url, title, body } = event.data.json();
+    const options = {
+      data: url,
+      body: body,
+      icon: image,
+      vibrate: [200, 100, 200],
+      tag: tag,
+      image: image,
+      badge: "/favicon.ico",
+      actions: [
+        {
+          action: "Detail",
+          title: "View",
+          icon: "https://via.placeholder.com/128/ff0000",
+        },
+      ],
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
   }
-);
+  
+  self.addEventListener("push", receivePushNotification);
+  
+  // self.addEventListener("message", (event) => {
+  //   if (event.data && event.data.type === "SKIP_WAITING") {
+  //     self.skipWaiting();
+  //   }
+  // });
+  
+  workbox.core.clientsClaim();
+  
+  /**
+   * The workboxSW.precacheAndRoute() method efficiently caches and responds to
+   * requests for URLs in the manifest.
+   * See https://goo.gl/S9QRab
+   */
+  self.__precacheManifest = [].concat(self.__precacheManifest || []);
+  workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
+  
+  workbox.routing.registerNavigationRoute(
+    workbox.precaching.getCacheKeyForURL("/index.html"),
+    {
+      blacklist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+    }
+  );
+  

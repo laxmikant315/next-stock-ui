@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
-import { Row, Skeleton, Col, Button, Badge, Card } from "antd";
+import React, {  useEffect, useState } from "react";
+import { Row, Skeleton, Col, Button, Badge, Card, Input, Popover } from "antd";
 
 import Chart from "react-apexcharts";
-import { Para, StocksStyle } from "./stocks.styles";
+import { Para, StocksStyle, CalculatedQuantityStyle } from "./stocks.styles";
 
-import { LikeTwoTone } from "@ant-design/icons";
+import { LikeTwoTone, SlidersTwoTone } from "@ant-design/icons";
 import moment from "moment";
 
 const StockContent = ({ stockDetails }: any) => {
@@ -17,7 +17,7 @@ const StockContent = ({ stockDetails }: any) => {
     },
   ]);
 
-  const [chart, setChartData] = useState({
+  const chart = {
     options: {
       chart: {
         height: 350,
@@ -43,7 +43,7 @@ const StockContent = ({ stockDetails }: any) => {
         categories: [1, 2, 3, 4],
       },
     },
-  });
+  };
   const colors = ["#5fa3f0", "#f0e15f", "#5fe48a"];
   const [bar, setBarData] = useState({
     series: [
@@ -151,81 +151,138 @@ const StockContent = ({ stockDetails }: any) => {
     getData();
   }, [stockDetails]);
 
+  const [quantity, setQuantity] = useState(0);
+  const [sl, setSl] = useState(stockDetails.currentPrice);
+
+  const calculateQuantity = () => {
+    const gap = Math.abs(stockDetails.currentPrice - sl);
+    const maximumLoss = 500;
+    let quantity=0;
+    if(gap){
+       quantity = Math.round(maximumLoss / gap);
+      
+    }
+    setQuantity(quantity);
+    
+  };
+
+  useEffect(()=>{
+    calculateQuantity()
+  },[stockDetails])
+
+  const content = (
+    <CalculatedQuantityStyle>
+       <Input
+              type="number"
+              placeholder={"Enter Stoploss"}
+              id="txtSL"
+              value={sl}
+              onChange={(e: any) => {
+                setSl(+e.target.value);
+                calculateQuantity();
+              }}
+            />
+              <h1 className="quantity">{quantity && quantity}</h1> 
+    </CalculatedQuantityStyle>
+  );
+
+
   return (
     <StocksStyle>
       {loading && <Skeleton active />}
       {!loading && stockDetails && (
-        
-          <Card
-            title={
-              <span onClick={() => openStock(stockDetails)} style={{cursor:'pointer'}}>
+        <Card
+          title={
+            <>
+              <span
+                onClick={() => openStock(stockDetails)}
+                style={{ cursor: "pointer" }}
+              >
                 {stockDetails.goodOne && stockDetails.valid && (
                   <LikeTwoTone style={{ color: "#5fe48a" }} />
                 )}
-                <span style={{ color: stockDetails.trend === "DOWN"?'red':'green' }}> {" "}{stockDetails.symbol}</span> on{" "}
+                <span
+                  style={{
+                    color: stockDetails.trend === "DOWN" ? "red" : "green",
+                  }}
+                >
+                  {" "}
+                  {stockDetails.symbol}{" "}
+                  <small> {stockDetails.currentPrice} </small>{" "}
+                </span>{" "}
+                on{" "}
                 <small>
-                  {moment(stockDetails.createDt).format("DD MMM YYYY")}
-                </small>
-         
+                  {moment(stockDetails.createDt).format("DD MMM YYYY h:mm a")}
+                </small>{" "}
+                {((stockDetails.lastCandelIsGreen &&
+                  stockDetails.trend === "UP") ||
+                  (!stockDetails.lastCandelIsGreen &&
+                    stockDetails.trend === "DOWN")) && <SlidersTwoTone />}
               </span>
-            }
-            bordered={false}
-          >
-            <Row>
-              
-
-             
-              <Col xs={24} sm={12} md={12}>
-                <h3>Candel Size</h3>
-                <Chart
-                  options={bar.options}
-                  series={bar.series}
-                  type="bar"
-                  height={350}
-                />
-              </Col>
-              <Col xs={24} sm={12} md={12}>
-                {" "}
-                <div style={{textAlign:"center"}}>
-                  <strong>Price Action</strong>
+            </>
+          }
+          bordered={false}
+        >
+          <>
+           
+            <Popover content={content} title="Calculate Quantity" trigger="click">
+      <Button>Calculate Quantity</Button>
+    </Popover>
+          
+          </>
+          <Row>
+            <Col xs={24} sm={12} md={12}>
+              <h3>Candel Size</h3>
+              <Chart
+                options={bar.options}
+                series={bar.series}
+                type="bar"
+                height={350}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={12}>
+              {" "}
+              <div style={{ textAlign: "center" }}>
+                <strong>Price Action</strong>
 
                 <Row justify="center">
-                  <Col sm={12} style={{textAlign:"center"}}>
-                  <Para>Highest High : {stockDetails.highestHigh.highest}</Para>
-                <Para>Lowest Low : {stockDetails.lowestLow.lowest}</Para></Col>
-                  <Col sm={12} style={{textAlign:"center"}}>
-                  <Para> High : {stockDetails.high.highest}</Para>
-                <Para> Low : {stockDetails.low.lowest}</Para></Col>
+                  <Col sm={12} style={{ textAlign: "center" }}>
+                    <Para>
+                      Highest High : {stockDetails.highestHigh.highest}
+                    </Para>
+                    <Para>Lowest Low : {stockDetails.lowestLow.lowest}</Para>
+                  </Col>
+                  <Col sm={12} style={{ textAlign: "center" }}>
+                    <Para> High : {stockDetails.high.highest}</Para>
+                    <Para> Low : {stockDetails.low.lowest}</Para>
+                  </Col>
                 </Row>
 
-                
-                
-                  {(stockDetails.valid && (
-                    <Badge
-                      count="VALID"
-                      style={{ backgroundColor: "#52c41a", marginLeft: 10 }}
-                    />
-                  )) || (
-                    <Badge
-                      count="INVALID"
-                      style={{ backgroundColor: "#f82626", marginLeft: 10 }}
-                    />
-                  )}
-                </div>{" "}
-                {chart && data && (
-                  <div id="chart">
-                    <Chart
-                      options={chart.options}
-                      series={data}
-                      type="line"
-                      height={350}
-                    />
-                  </div>
+                {(stockDetails.valid && (
+                  <Badge
+                    count="VALID"
+                    style={{ backgroundColor: "#52c41a", marginLeft: 10 }}
+                  />
+                )) || (
+                  <Badge
+                    count="INVALID"
+                    style={{ backgroundColor: "#f82626", marginLeft: 10 }}
+                  />
                 )}
-              </Col>
-            </Row>
-          </Card>
-         
+              </div>{" "}
+              {chart && data && (
+                <div id="chart">
+                  <Chart
+                    options={chart.options}
+                    series={data}
+                    type="line"
+                    height={350}
+                  />
+                </div>
+              )}
+            </Col>
+          </Row>
+        </Card>
       )}
     </StocksStyle>
   );
