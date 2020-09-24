@@ -4,9 +4,12 @@ import React,{ useEffect, useState, lazy } from 'react';
 import { HomeStyles } from './home.styles';
 import {   Tabs } from "antd";
 import io from "socket.io-client";
+import IntradayStocks from '../intraday-stocks/intraday-stocks.component';
 
 
-const ScrollableStocks = lazy(() => import('../scrollable-stocks/scrollable-stocks.component'));
+//const ScrollableStocks = lazy(() => import('../scrollable-stocks/scrollable-stocks.component'));
+
+ const ScrollableStocks = lazy(() => import('../virtualise-stocks/virtualise-stocks.component'));
 
 
 
@@ -15,6 +18,8 @@ const { TabPane } = Tabs;
 const Home = ()=>{
     const [intradayStocks, setIntradayStocks] = useState<any[]>([]);
     const [swingStocks, setSwingStocks] = useState<any[]>([]);
+
+    const MyContext = React.createContext({});
 
 
   useEffect(() => {
@@ -40,10 +45,12 @@ const Home = ()=>{
              
       <Tabs defaultActiveKey="1" >
         <TabPane tab="Intraday" key="1">
-          <ScrollableStocks type="intraday" liveData={intradayStocks}/>
+          <IntradayStocks  liveData={intradayStocks}/>
+      
+          
         </TabPane>
         <TabPane tab="Swing" key="2">
-        <ScrollableStocks type="swing" liveData={swingStocks}/>
+        <ScrollableStocks />
         </TabPane>
       </Tabs>
     </HomeStyles>

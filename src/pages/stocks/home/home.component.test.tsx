@@ -1,8 +1,8 @@
 import React from 'react';
-import App from './App';
 import { shallow } from 'enzyme';
+import Home from './home.component';
 
 it('render test',()=>{
 
-  expect(shallow(<App/>)).toMatchSnapshot()
+  expect(shallow(<Home/>)).toMatchSnapshot()
 })

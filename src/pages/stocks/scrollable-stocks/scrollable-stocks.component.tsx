@@ -24,7 +24,7 @@ const ScrollableStocks = ({
 
   const loadItems = (page: any) => {
   
-    getNotifications(type,offSet)
+    getNotifications(type,offSet.toString())
       .then((resp) => {
         if (resp) {
           setOffSet(offSet + 1);

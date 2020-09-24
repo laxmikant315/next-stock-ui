@@ -1,10 +1,9 @@
 import React, { Suspense } from "react";
 
-import "./App.styles.tsx";
 
-import { AppStyles } from "./App.styles";
-import Home from "./pages/stocks/home/home.component";
-
+import  AppStyles  from "./App.styles";
+ import Home from "./pages/stocks/home/home.component";
+import Test from './pages/test/test.component'
 
 function App() {
   
@@ -12,7 +11,11 @@ function App() {
   return (
     <AppStyles>
       <Suspense fallback={()=><h1>Loading</h1>}>
-      <Home/>
+      {/* <Home/> */}
+
+      <h1>Hello</h1>
+      <input type="text"  inputMode="numeric"/>
+      {/* <Test/> */}
       </Suspense>
     </AppStyles>
   );

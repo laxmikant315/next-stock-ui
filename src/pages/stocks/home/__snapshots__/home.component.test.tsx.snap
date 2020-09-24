@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`render test 1`] = `
+<styled.div>
+  <Tabs
+    defaultActiveKey="1"
+    hideAdd={false}
+    tabPosition="top"
+  >
+    <TabPane
+      key="1"
+      placeholder={null}
+      tab="Intraday"
+    >
+      <IntradayStocks
+        liveData={Array []}
+      />
+    </TabPane>
+    <TabPane
+      key="2"
+      placeholder={null}
+      tab="Swing"
+    >
+      <lazy
+        liveData={Array []}
+        type="swing"
+      />
+    </TabPane>
+  </Tabs>
+</styled.div>
+`;

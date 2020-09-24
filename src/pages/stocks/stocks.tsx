@@ -1,11 +1,25 @@
-import React, {  useEffect, useState } from "react";
-import { Row, Skeleton, Col, Button, Badge, Card, Input, Popover } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Row,
+  Skeleton,
+  Col,
+  Button,
+  Badge,
+  Card,
+  Input,
+  Popover,
+  Descriptions,
+  Form,
+  Switch,
+} from "antd";
 
 import Chart from "react-apexcharts";
 import { Para, StocksStyle, CalculatedQuantityStyle } from "./stocks.styles";
 
 import { LikeTwoTone, SlidersTwoTone } from "@ant-design/icons";
 import moment from "moment";
+
+import { Formik } from "formik";
 
 const StockContent = ({ stockDetails }: any) => {
   const [loading, setLoading] = useState(true);
@@ -151,41 +165,230 @@ const StockContent = ({ stockDetails }: any) => {
     getData();
   }, [stockDetails]);
 
-  const [quantity, setQuantity] = useState(0);
-  const [sl, setSl] = useState(stockDetails.currentPrice);
+  const [result, setResult] = useState<any>({
+    quantity: 0,
+    buyCost: 0,
+    slCost: 0,
+    targetCost: 0,
+    expectedProfit: 0,
+    maximumLoss: 0,
+  });
+  const [formValues, setFormValues] = useState({
+    buyPrice: stockDetails.currentPrice,
+    stoploss: stockDetails.currentPrice,
+    target: stockDetails.currentPrice,
+  });
 
+  const [freezeQty, setFreezeQty] = useState(false);
   const calculateQuantity = () => {
-    const gap = Math.abs(stockDetails.currentPrice - sl);
-    const maximumLoss = 500;
-    let quantity=0;
-    if(gap){
-       quantity = Math.round(maximumLoss / gap);
-      
+    let quantity = result.quantity;
+
+    if (!freezeQty) {
+      const gap = Math.abs(formValues.buyPrice - formValues.stoploss);
+      const maximumLossAmount = 500;
+      if (gap) {
+        quantity = Math.round(maximumLossAmount / gap);
+      }
     }
-    setQuantity(quantity);
-    
+
+    const buyCost = formValues.buyPrice * quantity;
+    const slCost = formValues.stoploss * quantity;
+    const targetCost = formValues.target * quantity;
+
+    let trend = "up";
+    if (formValues.buyPrice > formValues.target) {
+      trend = "down";
+    }
+    let expectedProfit = targetCost - buyCost;
+    let maximumLoss = buyCost - slCost;
+
+    if (trend === "down") {
+      expectedProfit = buyCost - targetCost;
+      maximumLoss = slCost - buyCost;
+    }
+    setResult({
+      quantity,
+      buyCost,
+      slCost,
+      targetCost,
+      expectedProfit,
+      maximumLoss,
+    });
   };
 
-  useEffect(()=>{
-    calculateQuantity()
-  },[stockDetails])
+  useEffect(() => {
+    calculateQuantity();
+  }, [formValues]);
 
   const content = (
     <CalculatedQuantityStyle>
-       <Input
-              type="number"
-              placeholder={"Enter Stoploss"}
-              id="txtSL"
-              value={sl}
-              onChange={(e: any) => {
-                setSl(+e.target.value);
-                calculateQuantity();
-              }}
-            />
-              <h1 className="quantity">{quantity && quantity}</h1> 
+      <Formik
+        initialValues={formValues}
+        validate={(values: any) => {
+          const errors: any = {};
+          if (!values.buyPrice) {
+            errors.buyPrice = "Required";
+          }
+          if (!values.stoploss) {
+            errors.stoploss = "Required";
+          }
+          return errors;
+        }}
+        onSubmit={(values, { setSubmitting }) => {
+          setTimeout(() => {
+            setFormValues(() => values);
+            setSubmitting(false);
+          }, 400);
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting,
+          setValues,
+          /* and other goodies */
+        }) => {
+          const layout = {
+            labelCol: { span: 8 },
+            wrapperCol: { span: 16 },
+          };
+
+          const onChange = (e: any) => {
+            const targetEl = e.target;
+            const fieldName = targetEl.name;
+            setFormValues({
+              ...formValues,
+              [fieldName]: targetEl.value,
+            });
+            return handleChange(e);
+          };
+          return (
+            <>
+              <Form
+                onFinish={(values: any) => {
+                  // handleSubmit(e)
+                }}
+                {...layout}
+              >
+                <Form.Item label="Buy Price" name="buyPrice">
+                  <Input
+                    type="number"
+                    name="buyPrice"
+                    onChange={onChange}
+                    onBlur={handleBlur}
+                    value={values.buyPrice}
+                    size="large"
+                    placeholder="Buy Price"
+                    step="0.5"
+                  />
+                  {errors.buyPrice && touched.buyPrice && errors.buyPrice}
+                </Form.Item>
+
+                <Form.Item label="Stoploss" name="stoploss">
+                  <Input
+                    type="number"
+                    name="stoploss"
+                    onChange={onChange}
+                    onBlur={handleBlur}
+                    value={values.stoploss}
+                    step="0.5"
+                    size="large"
+                    placeholder="Stop Loss"
+                  />
+                  {errors.stoploss && touched.stoploss && errors.stoploss}
+                </Form.Item>
+
+                <Form.Item label="Target" name="target">
+                  <Input
+                    type="number"
+                    name="target"
+                    onChange={onChange}
+                    onBlur={handleBlur}
+                    value={values.target}
+                    step="0.5"
+                    size="large"
+                    placeholder="Target"
+                  />
+                  {errors.target && touched.target && errors.target}
+                </Form.Item>
+              </Form>
+
+              {result && (
+                <Descriptions
+                  title={
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-evenly",
+                      }}
+                    >
+                      <span>Quantity:{result.quantity}</span>
+
+                      <Switch
+                        // style={{marginLeft:10}}
+                        checked={freezeQty}
+                        checkedChildren="Freezed"
+                        unCheckedChildren="&nbsp;&nbsp;Unfreezed"
+                        onChange={() => {
+                          setFreezeQty(() => !freezeQty);
+                          calculateQuantity();
+                        }}
+                      />
+
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setFormValues({
+                            buyPrice: stockDetails.currentPrice,
+                            stoploss: stockDetails.currentPrice,
+                            target: stockDetails.currentPrice,
+                          });
+                          setResult({
+                            quantity: 0,
+                            buyCost: 0,
+                            slCost: 0,
+                            targetCost: 0,
+                            expectedProfit: 0,
+                            maximumLoss: 0,
+                          });
+                          setFreezeQty(false);
+                          setValues({
+                            buyPrice: stockDetails.currentPrice,
+                            stoploss: stockDetails.currentPrice,
+                            target: stockDetails.currentPrice,
+                          });
+                        }}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  }
+                  column={1}
+                  bordered
+                >
+                  <Descriptions.Item label="Amount">
+                    ₹{result.buyCost.toFixed(2)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Expected Profit">
+                    ₹{result.expectedProfit.toFixed(2)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Maximum Loss">
+                    ₹{result.maximumLoss.toFixed(2)}
+                  </Descriptions.Item>
+                </Descriptions>
+              )}
+            </>
+          );
+        }}
+      </Formik>
+      {/* <h1 className="quantity">{quantity}</h1>  */},
     </CalculatedQuantityStyle>
   );
-
 
   return (
     <StocksStyle>
@@ -224,11 +427,13 @@ const StockContent = ({ stockDetails }: any) => {
           bordered={false}
         >
           <>
-           
-            <Popover content={content} title="Calculate Quantity" trigger="click">
-      <Button>Calculate Quantity</Button>
-    </Popover>
-          
+            <Popover
+              content={content}
+              title="Calculate Quantity"
+              trigger="click"
+            >
+              <Button>Calculate Quantity</Button>
+            </Popover>
           </>
           <Row>
             <Col xs={24} sm={12} md={12}>

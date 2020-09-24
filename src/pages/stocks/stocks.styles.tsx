@@ -15,4 +15,22 @@ export const CalculatedQuantityStyle = styled.div`
 .quantity{
     text-align: center;
 color: cornflowerblue;
-}`
+}
+table {
+    width:auto !important;
+}
+
+.ant-switch{
+    >span{
+        margin: 0 6px 0 24px !important;
+    }
+
+
+    &.ant-switch-checked{
+        >span{
+        margin: 0 24px 0 6px !important;
+    }
+    }
+    
+}
+`

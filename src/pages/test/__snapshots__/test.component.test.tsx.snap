@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Login /> with no props should match the snapshot 1`] = `
+<Login
+  email="acesmndr@gmail.com"
+  isLoginDisabled={false}
+  password="notapassword"
+>
+  <form>
+    "acesmndr@gmail.com"
+    <input
+      className="mx-auto my-2"
+      onBlur={[Function]}
+      placeholder="email"
+      type="email"
+    />
+    <input
+      className="my-2"
+      onChange={[Function]}
+      type="password"
+      value="notapassword"
+    />
+    <input
+      className="btn btn-primary"
+      disabled={false}
+      onClick={[Function]}
+      type="button"
+      value="Submit"
+    />
+  </form>
+</Login>
+`;
